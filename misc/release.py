@@ -73,6 +73,8 @@ def main(argv=sys.argv[1:]):
                         help='force explicit version number')
     parser.add_argument('-p', '--package', default=package_info('source'),
                         help='package name')
+    parser.add_argument('-d', '--no-dch', default=False, action='store_true',
+                        help='skip updating debian changelog')
     parser.add_argument('-c', '--commit', default=False, action='store_true',
                         help='commit and tag new changelog')
     args = parser.parse_args(argv)
@@ -81,16 +83,17 @@ def main(argv=sys.argv[1:]):
     changes = subprocess.check_output(['git', 'log', '--oneline', '%s.%s..HEAD' % (args.package, package_info('version'))]).strip().split('\n')[::-1]
     changed = ['debian/changelog']
 
-    print 'creating changelog entry for %s ...' % version
-    subprocess.check_output(['dch', '-b', '--newversion', version, 'Tagging %s' % version])
-    for line in reversed(changes):
-        if not line:
-            continue
-        else:
-            sha1, text = line.strip().split(' ', 1)
+    if not args.no_dch:
+        print 'creating changelog entry for %s ...' % version
+        subprocess.check_output(['dch', '-b', '--newversion', version, 'Tagging %s' % version])
+        for line in reversed(changes):
+            if not line:
+                continue
+            else:
+                sha1, text = line.strip().split(' ', 1)
 
-        print '\tappending changelog message for %s ...' % sha1
-        subprocess.check_output(['dch', '--append', '[%s] %s' % (sha1, text)])
+            print '\tappending changelog message for %s ...' % sha1
+            subprocess.check_output(['dch', '--append', '[%s] %s' % (sha1, text)])
 
     for name, text in args.extra:
         print 'checking %s ...' % name
