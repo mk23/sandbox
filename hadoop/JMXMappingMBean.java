@@ -1,5 +1,5 @@
 public interface JMXMappingMBean {
-    public void purgeCacheData();
+    public void reloadCachedMappings();
 
-    public String getCacheData();
+    public String getCachedMappings();
 }

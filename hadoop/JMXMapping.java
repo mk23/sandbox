@@ -203,11 +203,11 @@ public class JMXMapping extends Configured implements DNSToSwitchMapping, JMXMap
         return results;
     }
 
-    public String getCacheData() {
+    public String getCachedMappings() {
         return JSON.toString(cacheMap);
     }
 
-    public void purgeCacheData() {
+    public void reloadCachedMappings() {
         LOG.info("invoking cache purge");
         cacheMap.clear();
     }
