@@ -45,11 +45,13 @@ public class JMXMapping extends Configured implements DNSToSwitchMapping, JMXMap
     private static final String NET_TOPOLOGY_COMPONENT_PREFIX =
         System.getProperty("proc_namenode") != null ? "hdfs." :
         System.getProperty("proc_jobtracker") != null ? "mapred." :
+        System.getProperty("proc_jobtrackerha") != null ? "mapred." :
         "";
 
     private static final String NET_TOPOLOGY_COMPONENT_MBEAN =
         System.getProperty("proc_namenode") != null ? "NameNode" :
         System.getProperty("proc_jobtracker") != null ? "JobTracker" :
+        System.getProperty("proc_jobtrackerha") != null ? "JobTracker" :
         "General";
 
     private String endpointPort = "-1";
