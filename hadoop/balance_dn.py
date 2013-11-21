@@ -1,11 +1,14 @@
 #!/opt/python/bin/python2.7
 
 import argparse
+import errno
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
+import traceback
 import xml.etree.cElementTree as etree
 
 def check_root():
@@ -22,6 +25,17 @@ def check_java():
         if item == 'DataNode':
             sys.stderr.write('cannot run while %s is up (pid %s)\n' % (item, proc))
             sys.exit(1)
+
+def mutex_lock(port, sock=socket.socket()):
+    try:
+        sock.bind(('127.0.0.1', port))
+        sock.listen(1)
+    except socket.error as e:
+        if e.errno == errno.EADDRINUSE:
+            sys.stderr.write('another balance_dn process is already running\n')
+        else:
+            traceback.print_exc()
+        sys.exit(1)
 
 def parse_conf(path):
     conf = {}
@@ -98,6 +112,8 @@ if __name__ == '__main__':
                         help='balance percentage factor')
     parser.add_argument('-c', '--cfg-dir', default='/etc/hadoop/conf',
                         help='hadoop configuration directory')
+    parser.add_argument('-p', '--mtx-prt', default=1123, type=int,
+                        help='local runtime mutex port')
     parser.add_argument('-n', '--dry-run', default=False, action='store_true',
                         help='report usage without performing balance')
     parser.add_argument('-v', '--verbose', default=False, action='store_true',
@@ -107,6 +123,7 @@ if __name__ == '__main__':
     if not args.dry_run:
         check_root()
         check_java()
+        mutex_lock(args.mtx_prt)
 
     dirs = parse_conf(args.cfg_dir)
 
@@ -118,14 +135,15 @@ if __name__ == '__main__':
 
         print 'calculated volume usage: (%.02f%% mean)' % mean
         print '\t', ', '.join('%s: %.02f%%' % (k, v['util']) for k, v in sorted(util.items()))
-        try:
-            orig, used = min(((i, j) for i, j in util.items() if j['util'] - mean > args.balance), key=lambda k: k[1]['util'])
-        except ValueError:
+
+        orig, used = max(((i, j) for i, j in util.items()), key=lambda k: k[1]['util'])
+        dest = list('%s/current' % i for i, j in util.items() if mean - j['util'] > args.balance / (len(util) - 1))
+        size = int(used['total'] * (used['util'] - mean) / 100)
+
+        if not dest:
             print 'volumes are balanced to +/- %.02f%%' % args.balance
             break
 
-        dest = ['%s/current' % i for i, j in util.items() if mean - j['util'] > args.balance / (len(util) - 1)]
-        size = int(used['total'] * (used['util'] - mean) / 100)
         rebalancer(orig, dest, size, args.verbose, args.dry_run)
 
         if args.dry_run:
