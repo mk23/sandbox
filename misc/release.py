@@ -86,6 +86,7 @@ def main(argv=sys.argv[1:]):
     if not args.no_dch:
         print 'creating changelog entry for %s ...' % version
         subprocess.check_output(['dch', '-b', '--newversion', version, 'Tagging %s' % version])
+
         for line in reversed(changes):
             if not line:
                 continue
@@ -94,6 +95,9 @@ def main(argv=sys.argv[1:]):
 
             print '\tappending changelog message for %s ...' % sha1
             subprocess.check_output(['dch', '--append', '[%s] %s' % (sha1, text)])
+
+        print 'finalizing changelog release for %s ...' % version
+        subprocess.check_output(['dch', '-r', ''])
 
     for name, text in args.extra:
         print 'checking %s ...' % name
