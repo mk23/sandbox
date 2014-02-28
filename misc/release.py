@@ -6,7 +6,6 @@ import re
 import subprocess
 import sys
 
-
 def package_info(key, cache={}):
     if not cache:
         lines = subprocess.check_output(['dpkg-parsechangelog']).split('\n')
@@ -79,6 +78,7 @@ def main(argv=sys.argv[1:]):
                         help='commit and tag new changelog')
     args = parser.parse_args(argv)
 
+    branch  = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).strip()
     version = args.version or bump_version(args.major, args.minor, args.patch)
     changes = subprocess.check_output(['git', 'log', '--oneline', '%s.%s..HEAD' % (args.package, package_info('version'))]).strip().split('\n')[::-1]
     changed = ['debian/changelog']
@@ -99,15 +99,20 @@ def main(argv=sys.argv[1:]):
         print 'finalizing changelog release for %s ...' % version
         subprocess.check_output(['dch', '-r', ''])
 
-    for name, text in args.extra:
+    for name, patt in args.extra:
         print 'checking %s ...' % name
-        part = '(?P<PATTERN>%s)' % text.format(version='(?P<VERSION>.*?)')
-        orig = open(name).read()
-        find = re.search(part, orig)
+        part = '(?P<PATTERN>%s)' % patt.format(version='(?P<VERSION>.*?)', branch='(?P<BRANCH>.*?)')
+        text = open(name).read()
+        find = re.search(part, text).groupdict()
         if find:
             print '\tmodifying %s ...' % name
+            if 'VERSION' in find:
+                text = text.replace(find['PATTERN'], find['PATTERN'].replace(find['VERSION'], version))
+            if 'BRANCH' in find:
+                text = text.replace(find['PATTERN'], find['PATTERN'].replace(find['BRANCH'], branch))
+
             data = open(name, 'w')
-            data.write(orig.replace(find.group('PATTERN'), find.group('PATTERN').replace(find.group('VERSION'), version)))
+            data.write(text)
             data.close()
             changed.append(name)
 
