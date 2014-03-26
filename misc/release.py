@@ -61,7 +61,7 @@ def main(argv=sys.argv[1:]):
     parser = argparse.ArgumentParser(description='debian package release helper')
     action = parser.add_mutually_exclusive_group()
     parser.add_argument('-e', '--extra', default=[], nargs=2, action='append',
-                        help='extra files to update with specified regex')
+                        help='extra files to update with specified regex that contain one of {version}, {branch}, or {tag}')
     action.add_argument('-j', '--major', default=False, action='store_true',
                         help='force increment major number')
     action.add_argument('-n', '--minor', default=False, action='store_true',
@@ -101,7 +101,7 @@ def main(argv=sys.argv[1:]):
 
     for name, patt in args.extra:
         print 'checking %s ...' % name
-        part = '(?P<PATTERN>%s)' % patt.format(version='(?P<VERSION>.*?)', branch='(?P<BRANCH>.*?)')
+        part = '(?P<PATTERN>%s)' % patt.format(version='(?P<VERSION>.*?)', branch='(?P<BRANCH>.*?)', tag='(?P<TAG>.*?)')
         text = open(name).read()
         find = re.search(part, text).groupdict()
         if find:
@@ -110,6 +110,8 @@ def main(argv=sys.argv[1:]):
                 text = text.replace(find['PATTERN'], find['PATTERN'].replace(find['VERSION'], version))
             if 'BRANCH' in find:
                 text = text.replace(find['PATTERN'], find['PATTERN'].replace(find['BRANCH'], branch))
+            if 'TAG' in find:
+                text = text.replace(find['PATTERN'], find['PATTERN'].replace(find['TAG'], '%s.%s' % (args.package, version)))
 
             data = open(name, 'w')
             data.write(text)
