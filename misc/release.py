@@ -72,6 +72,8 @@ def main(argv=sys.argv[1:]):
                         help='force explicit version number')
     parser.add_argument('-p', '--package', default=package_info('source'),
                         help='package name')
+    parser.add_argument('-r', '--release', default=package_info('distribution'),
+                        help='package distribution')
     parser.add_argument('-d', '--no-dch', default=False, action='store_true',
                         help='skip updating debian changelog')
     parser.add_argument('-c', '--commit', default=False, action='store_true',
@@ -97,7 +99,7 @@ def main(argv=sys.argv[1:]):
             subprocess.check_output(['dch', '--append', '[%s] %s' % (sha1, text)])
 
         print 'finalizing changelog release for %s ...' % version
-        subprocess.check_output(['dch', '-r', ''])
+        subprocess.check_output(['dch', '--release', '--distribution', args.release, ''])
 
     for name, patt in args.extra:
         print 'checking %s ...' % name
