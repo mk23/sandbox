@@ -7,12 +7,15 @@ import subprocess
 import sys
 
 def package_info(key, cache={}):
-    if not cache:
-        lines = subprocess.check_output(['dpkg-parsechangelog']).split('\n')
-        items = [line.split(': ', 1) for line in lines if line and not line.startswith(' ') and line != 'Changes: ']
-        cache.update(dict((k.lower(), v) for k, v in items))
+    try:
+        if not cache:
+            lines = subprocess.check_output(['dpkg-parsechangelog']).split('\n')
+            items = [line.split(': ', 1) for line in lines if line and not line.startswith(' ') and line != 'Changes: ']
+            cache.update(dict((k.lower(), v) for k, v in items))
 
-    return cache.get(key)
+        return cache.get(key)
+    except (OSError, subprocess.CalledProcessError):
+        return 'UNKNOWN'
 
 def bump_version(bump_major=False, bump_minor=False, bump_patch=False):
     types = {
