@@ -58,7 +58,7 @@ def bump_version(bump_major=False, bump_minor=False, bump_patch=False):
     raise RuntimeError('unknown version format detected')
 
 def main(argv=sys.argv[1:]):
-    parser = argparse.ArgumentParser(description='debian package release helper')
+    parser = argparse.ArgumentParser(description='debian package release helper', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     action = parser.add_mutually_exclusive_group()
     parser.add_argument('-e', '--extra', default=[], nargs=2, action='append', metavar=('FILE', 'REGEX'),
                         help='extra files to update with specified regex that contain one of {version}, {branch}, or {tag}')
