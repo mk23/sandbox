@@ -20,7 +20,7 @@ def package_info(key, cache={}):
 def bump_version(bump_major=False, bump_minor=False, bump_patch=False):
     types = {
         'ds': r'(?P<MAJOR>\d{8})\.(?P<PATCH>\d{3})',
-        'mm': r'(?P<MAJOR>\d+)\.(?P<MINOR>\d+)\.(?P<BUILD>\d+)(?:\.(?P<PATCH>\d))?',
+        'mm': r'(?P<MAJOR>\d+)\.(?P<MINOR>\d+)\.(?P<BUILD>\d+)(?:\.(?P<PATCH>\d+))?',
     }
 
     for label, regex in types.items():
@@ -56,7 +56,6 @@ def bump_version(bump_major=False, bump_minor=False, bump_patch=False):
                 if bump_patch:
                     v_arg.append(patch)
 
-                print v_fmt, v_arg
                 return v_fmt % tuple(v_arg)
 
     raise RuntimeError('unknown version format detected')
