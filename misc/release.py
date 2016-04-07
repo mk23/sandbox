@@ -128,7 +128,10 @@ def main(argv=sys.argv[1:]):
         'version'   : package_info('version'),
         'package'   : args.package or package_info('source'),
     }
-    strings['last_sha1'] = subprocess.check_output(['git', 'log', '--no-merges', '-1', '--format=%H', args.tag_format.format(**strings)]).strip()
+    if bool(package_info('version')):
+        strings['last_sha1'] = subprocess.check_output(['git', 'rev-list', '--no-merges', '-1', args.tag_format.format(**strings)]).strip()
+    else:
+        strings['last_sha1'] = subprocess.check_output(['git', 'rev-list', '--max-parents=0', 'HEAD']).strip()
     strings['version']   = args.version or bump_version(args.append.format(**strings), args.major, args.minor, args.patch)
     strings['tag']       = args.tag_format.format(**strings)
 
