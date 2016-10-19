@@ -80,10 +80,10 @@ def main(argv=sys.argv[1:]):
                             help='force increment minor number')
         action.add_argument('-t', '--patch', default=False, action='store_true',
                             help='force increment patch number')
-        parser.add_argument('-m', '--message', default='Tagging {version}',
-                            help='changelog commit message')
         action.add_argument('-v', '--version',
                             help='force explicit version number')
+        parser.add_argument('-m', '--message', default='Tagging {version}',
+                            help='changelog commit message')
         parser.add_argument('-p', '--package', default=package_info('source'),
                             help='package name')
     else:
@@ -140,7 +140,7 @@ def main(argv=sys.argv[1:]):
     if not args.no_dch:
         if bool(package_info('version')):
             print 'creating changelog entry for %s ...' % strings['version']
-            subprocess.check_output(['dch', '--force-bad-version', '--newversion', strings['version'], args.message.format(**strings)])
+            subprocess.check_output(['dch', '--controlmaint', '--force-bad-version', '--newversion', strings['version'], args.message.format(**strings)])
 
             git_cmd = ['git', 'log', '--no-merges', '--format=%h %s (%aN)', '%s..%s' % (args.sha1_range[0].format(**strings), args.sha1_range[1].format(**strings))]
             git_cmd.extend(set(itertools.chain.from_iterable(args.sources)))
@@ -148,7 +148,7 @@ def main(argv=sys.argv[1:]):
             changes = subprocess.check_output(git_cmd)
         else:
             print 'creating new changelog for %s ...' % strings['version']
-            subprocess.check_output(['dch', '--create', '--package', args.package, '--newversion', strings['version'], args.message.format(**strings)])
+            subprocess.check_output(['dch', '--controlmaint', '--create', '--package', args.package, '--newversion', strings['version'], args.message.format(**strings)])
 
             changes = subprocess.check_output(['git', 'log', '--no-merges', '--format=%h %s (%aN)']) if not args.skiplog else ''
 
@@ -159,19 +159,19 @@ def main(argv=sys.argv[1:]):
                 sha1, text = line.strip().split(' ', 1)
 
             print '\tappending changelog message for %s ...' % sha1
-            subprocess.check_output(['dch', '--append', '[%s] %s' % (sha1, text)])
+            subprocess.check_output(['dch', '--controlmaint', '--append', '[%s] %s' % (sha1, text)])
 
             if args.extract:
                 text = subprocess.check_output(['git', 'show', '-s', '--format=%b', sha1])
                 bugs = re.findall('%s' % args.extract[0], text, re.IGNORECASE)
                 if bugs:
-                    subprocess.check_output(['dch', '--append', '  %s%s addressed:' % (args.extract[1].capitalize(), 's' if len(bugs) != 1 else '')])
+                    subprocess.check_output(['dch', '--controlmaint', '--append', '  %s%s addressed:' % (args.extract[1].capitalize(), 's' if len(bugs) != 1 else '')])
                     for item in bugs:
-                        subprocess.check_output(['dch', '--append', '    ' + args.extract[2].format(item=item)])
+                        subprocess.check_output(['dch', '--controlmaint', '--append', '    ' + args.extract[2].format(item=item)])
 
 
         print 'finalizing changelog release for %s ...' % strings['version']
-        subprocess.check_output(['dch', '--release', '--distribution', args.release, ''])
+        subprocess.check_output(['dch', '--maintmaint', '--release', '--distribution', args.release, ''])
 
     for name, patt in args.extra:
         print 'checking %s ...' % name
