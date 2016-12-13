@@ -141,16 +141,17 @@ def main(argv=sys.argv[1:]):
         if bool(package_info('version')):
             print 'creating changelog entry for %s ...' % strings['version']
             subprocess.check_output(['dch', '--controlmaint', '--force-bad-version', '--newversion', strings['version'], args.message.format(**strings)])
+        else:
+            print 'creating new changelog for %s ...' % strings['version']
+            subprocess.check_output(['dch', '--controlmaint', '--create', '--package', args.package, '--newversion', strings['version'], args.message.format(**strings)])
 
+        if not vars(args).get('skiplog', False):
             git_cmd = ['git', 'log', '--no-merges', '--format=%h %s (%aN)', '%s..%s' % (args.sha1_range[0].format(**strings), args.sha1_range[1].format(**strings))]
             git_cmd.extend(set(itertools.chain.from_iterable(args.sources)))
 
             changes = subprocess.check_output(git_cmd)
         else:
-            print 'creating new changelog for %s ...' % strings['version']
-            subprocess.check_output(['dch', '--controlmaint', '--create', '--package', args.package, '--newversion', strings['version'], args.message.format(**strings)])
-
-            changes = subprocess.check_output(['git', 'log', '--no-merges', '--format=%h %s (%aN)']) if not args.skiplog else ''
+            changes = ''
 
         for line in reversed(changes.strip().split('\n')[::-1]):
             if not line:
