@@ -16,8 +16,8 @@ def package_info(key, cache={}):
     try:
         if not cache:
             lines = subprocess.check_output(['dpkg-parsechangelog'], stderr=open(os.devnull, 'w')).split('\n')
-            items = [line.split(': ', 1) for line in lines if line and not line.startswith(' ') and line != 'Changes: ']
-            cache.update(dict((k.lower(), v) for k, v in items))
+            items = [line.split(':', 1) for line in lines if line and not line.startswith(' ')]
+            cache.update(dict((k.lower(), v.strip()) for k, v in items))
 
         return cache.get(key)
     except (OSError, subprocess.CalledProcessError):
