@@ -93,8 +93,8 @@ def main(argv=sys.argv[1:]):
                             help='force explicit version number')
         parser.add_argument('-p', '--package', required=True,
                             help='package name')
-        parser.add_argument('-l', '--skiplog', default=False, action='store_true',
-                            help='skip adding initial changelog contents')
+    parser.add_argument('-l', '--skiplog', default=False, action='store_true',
+                        help='skip adding changelog contents')
     parser.add_argument('-s', '--sources', nargs='+', default=['.'], action='append',
                         help='scm source directories to include in changelog')
     parser.add_argument('-r', '--release', default=package_info('distribution') or 'stable',
