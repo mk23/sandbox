@@ -23,7 +23,7 @@ def package_info(key, cache={}):
     except (OSError, subprocess.CalledProcessError):
         return ''
 
-def bump_version(suffix='', bump_major=False, bump_minor=False, bump_patch=False):
+def bump_version(suffix='', bump_major=False, bump_minor=False, bump_patch=False, no_bump=False):
     types = {
         'ds': r'(?P<MAJOR>\d{8})\.(?P<PATCH>\d{3})(?P<EXTRA>.*)',
         'mm': r'(?P<MAJOR>\d+)\.(?P<MINOR>\d+)\.(?P<BUILD>\d+)(?:\.(?P<PATCH>\d+))?(?P<EXTRA>.*)',
@@ -55,16 +55,19 @@ def bump_version(suffix='', bump_major=False, bump_minor=False, bump_patch=False
                 elif bump_patch:
                     v_fmt += '.%%0%dd' % (len(match.group('PATCH')) if patch is not None else 0)
                     patch  = 1 if patch is None else patch + 1
-                else:
+                elif not no_bump:
                     build += 1
 
                 v_arg = [major, minor, build]
                 if bump_patch:
                     v_arg.append(patch)
 
-                version = v_fmt % tuple(v_arg)
+                version = v_fmt % tuple(v_arg) + (suffix.replace('_', '-').replace('~', '+') or match.group('EXTRA') or '')
 
-            return version + (suffix.replace('_', '-').replace('~', '+') or match.group('EXTRA') or '')
+            if version != package_info('version'):
+                return version
+            else:
+                raise RuntimeError('version not incremented')
 
     raise RuntimeError('unknown version pattern detected')
 
@@ -80,6 +83,8 @@ def main(argv=sys.argv[1:]):
                             help='force increment minor number')
         action.add_argument('-t', '--patch', default=False, action='store_true',
                             help='force increment patch number')
+        action.add_argument('-b', '--no-bump', default=False, action='store_true',
+                            help='preserve version, append only')
         action.add_argument('-v', '--version',
                             help='force explicit version number')
         parser.add_argument('-m', '--message', default='Tagging {version}',
@@ -132,7 +137,7 @@ def main(argv=sys.argv[1:]):
         strings['last_sha1'] = subprocess.check_output(['git', 'rev-list', '--no-merges', '-1', args.tag_format.format(**strings)]).strip()
     else:
         strings['last_sha1'] = subprocess.check_output(['git', 'rev-list', '--max-parents=0', 'HEAD']).strip()
-    strings['version']   = args.version or bump_version(args.append.format(**strings), args.major, args.minor, args.patch)
+    strings['version']   = args.version or bump_version(args.append.format(**strings), args.major, args.minor, args.patch, args.no_bump)
     strings['tag']       = args.tag_format.format(**strings)
 
     changed = ['debian/changelog']
