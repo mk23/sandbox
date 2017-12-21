@@ -504,6 +504,6 @@ if __name__ == '__main__':
         getattr(sys.modules['__main__'], 'begin_'+args.command)(hdfs_api, hdfs_dir, ls_items, args)
 
         syslog.syslog(syslog.LOG_INFO, 'execution completed in %.02fs' % (datetime.datetime.now() - start_ts).total_seconds())
-        syslog.syslog(syslog.LOG_DEBUG, 'execution required %d webhdfs call%s' % (hdfs_api.calls, 's' if hdfs_api._cnt != 1 else ''))
+        syslog.syslog(syslog.LOG_DEBUG, 'execution required %d webhdfs call%s' % (hdfs_api.calls, 's' if hdfs_api.calls != 1 else ''))
     except Exception as e:
         log_exception(e)
