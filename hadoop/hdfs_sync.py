@@ -371,6 +371,10 @@ def clean_local(index, local, mirror, unpack, skip=False):
 
 
 def begin_cache(client, source, report, args):
+    if args.dry_run:
+        syslog.syslog(syslog.LOG_INFO, 'uploading new %d item index to %s/%s' % (len(report), source, args.ls_cache))
+        return
+
     try:
         client.mv('%s/%s' % (source, args.ls_cache), '%s/%s.old' % (source, args.ls_cache))
         syslog.syslog(syslog.LOG_NOTICE, 'renamed cached index %s/%s to %s/%s.old' % (source, args.ls_cache, source, args.ls_cache))
