@@ -140,6 +140,7 @@ class SyncFile(object):
 
             os.rename(path, save)
             os.rename(data, path)
+            os.chmod(path, 0o755)
             shutil.rmtree(save)
 
             syslog.syslog(syslog.LOG_NOTICE, 'moved unpacked path %s to %s' % (data, path))
@@ -412,13 +413,13 @@ def begin_fetch(client, source, report, args):
 
     if not os.path.exists(sync_dir):
         if not args.dry_run:
-            os.makedirs(sync_dir)
+            os.makedirs(sync_dir, 0o755)
             syslog.syslog(syslog.LOG_NOTICE, 'created mirror path: %s' % sync_dir)
         else:
             syslog.syslog(syslog.LOG_INFO, 'creating mirror path: %s' % sync_dir)
     if not os.path.exists(arch_dir):
         if not args.dry_run:
-            os.makedirs(arch_dir)
+            os.makedirs(arch_dir, 0o755)
             syslog.syslog(syslog.LOG_NOTICE, 'created unpack path: %s' % arch_dir)
         else:
             syslog.syslog(syslog.LOG_INFO, 'creating unpack path: %s' % arch_dir)
