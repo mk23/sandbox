@@ -43,7 +43,7 @@ def bump_version(suffix='', bump_major=False, bump_minor=False, bump_patch=False
                 minor = int(match.group('MINOR'))
                 build = int(match.group('BUILD'))
                 patch = int(match.group('PATCH')) if match.group('PATCH') is not None else None
-                v_fmt = '%%0%dd.%%0%dd.%%0%dd' % (len(match.group('MAJOR')), len(match.group('MINOR')), len(match.group('BUILD')))
+                v_fmt = '%d.%d.%d'
                 v_arg = []
                 if bump_major:
                     major += 1
@@ -53,7 +53,7 @@ def bump_version(suffix='', bump_major=False, bump_minor=False, bump_patch=False
                     minor += 1
                     build  = 0
                 elif bump_patch:
-                    v_fmt += '.%%0%dd' % (len(match.group('PATCH')) if patch is not None else 0)
+                    v_fmt += '.%d'
                     patch  = 1 if patch is None else patch + 1
                 elif not no_bump:
                     build += 1
